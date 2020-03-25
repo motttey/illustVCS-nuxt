@@ -1,29 +1,13 @@
 <template>
   <div class="container">
     <div>
-      <logo />
       <h1 class="title">
         illustVCS
       </h1>
       <h2 class="subtitle">
         version control system for drawing
       </h2>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green"
-        >
-          Documentation
-        </a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey"
-        >
-          GitHub
-        </a>
-      </div>
+      <canvas id="drawingCanvas" width="960" height="540"></canvas>
     </div>
   </div>
 </template>
@@ -32,9 +16,33 @@
 import Vue from 'vue'
 import Logo from '~/components/Logo.vue'
 
+// import { Stage, Shape } from '@createjs/easeljs/dist/easeljs.cjs';
+// import { Tween } from '@createjs/tweenjs/dist/tweenjs.cjs';
+
 export default Vue.extend({
   components: {
     Logo
+  },
+  created: function(){
+    if (process.client) {
+      // import { Stage, Shape } from '@createjs/easeljs/dist/easeljs.cjs';
+      // import { Tween } from '@createjs/tweenjs/dist/tweenjs.cjs';
+      const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
+      const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
+
+      let stage = new easljs.Stage("drawingCanvas");
+      let shape = new easljs.Shape();
+
+      shape.graphics.beginStroke("DarkRed");
+
+      shape.graphics
+        .moveTo(100, 100)
+        .lineTo(500, 500);
+
+      stage.addChild(shape);
+      stage.update();
+    }
+
   }
 })
 </script>
@@ -70,4 +78,5 @@ export default Vue.extend({
 .links {
   padding-top: 15px;
 }
+
 </style>
