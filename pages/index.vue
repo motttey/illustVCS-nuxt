@@ -23,6 +23,43 @@ export default Vue.extend({
   components: {
     Logo
   },
+  data: function() {
+    return {
+      stage: {},
+      shape: {},
+    }
+  },
+  methods: {
+    handleDown(event) {
+      this.shape.graphics
+        .beginStroke("black");
+
+      this.shape.graphics.moveTo(event.stageX, event.stageY) // 描画開始位置を指定
+      if (process.client) {
+        this.stage.addEventListener("stagemousemove", this.handleMove);
+        this.stage.addEventListener("stagemouseup", this.handleUp);
+      }
+    },
+    handleMove(event) {
+      this.shape.graphics
+        .lineTo(event.stageX, event.stageY);
+    },
+    handleUp(event) {
+      this.shape.graphics
+              .lineTo(event.stageX, event.stageY);
+
+      let stroke = this.shape.graphics.endStroke();
+
+      if (process.client) {
+        this.stage.removeEventListener("stagemousemove", this.handleMove);
+        this.stage.removeEventListener("stagemouseup", this.handleUp);
+      }
+      this.stage.update();
+    },
+    onTick() {
+      this.stage.update(); // Stageの描画を更新
+    }
+  },
   created: function(){
     if (process.client) {
       // import { Stage, Shape } from '@createjs/easeljs/dist/easeljs.cjs';
@@ -30,20 +67,19 @@ export default Vue.extend({
       const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
       const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
 
-      let stage = new easljs.Stage("drawingCanvas");
-      let shape = new easljs.Shape();
+      this.stage = new easljs.Stage("drawingCanvas");
+      this.shape = new easljs.Shape();
 
-      shape.graphics.beginStroke("DarkRed");
+      // shape.graphics.beginStroke("DarkRed");
+      this.stage.addEventListener("stagemousedown", this.handleDown);
 
-      shape.graphics
-        .moveTo(100, 100)
-        .lineTo(500, 500);
+      this.stage.addChild(this.shape); // -> TODO: イベントごとに別で管理
+      // this.stage.update();
 
-      stage.addChild(shape);
-      stage.update();
+      easljs.Ticker.timingMode = easljs.Ticker.RAF;
+      easljs.Ticker.addEventListener("tick", this.onTick);
     }
-
-  }
+  },
 })
 </script>
 
