@@ -26,29 +26,36 @@ export default Vue.extend({
   data: function() {
     return {
       stage: {},
+      new_shape: {},
       shape: {},
+      // revisions: [], // DAGにする
     }
   },
   methods: {
     handleDown(event) {
-      this.shape.graphics
+      const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
+      this.new_shape = new easljs.Shape();
+
+      this.new_shape.graphics
         .beginStroke("black");
 
-      this.shape.graphics.moveTo(event.stageX, event.stageY) // 描画開始位置を指定
+      this.new_shape.graphics.moveTo(event.stageX, event.stageY) // 描画開始位置を指定
+      this.stage.addChild(this.new_shape);
+
       if (process.client) {
         this.stage.addEventListener("stagemousemove", this.handleMove);
         this.stage.addEventListener("stagemouseup", this.handleUp);
       }
     },
     handleMove(event) {
-      this.shape.graphics
+      this.new_shape.graphics
         .lineTo(event.stageX, event.stageY);
     },
     handleUp(event) {
-      this.shape.graphics
+      this.new_shape.graphics
               .lineTo(event.stageX, event.stageY);
 
-      let stroke = this.shape.graphics.endStroke();
+      let stroke = this.new_shape.graphics.endStroke();
 
       if (process.client) {
         this.stage.removeEventListener("stagemousemove", this.handleMove);
@@ -68,12 +75,11 @@ export default Vue.extend({
       const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
 
       this.stage = new easljs.Stage("drawingCanvas");
-      this.shape = new easljs.Shape();
+      // this.shape = new easljs.Shape();
 
       // shape.graphics.beginStroke("DarkRed");
       this.stage.addEventListener("stagemousedown", this.handleDown);
 
-      this.stage.addChild(this.shape); // -> TODO: イベントごとに別で管理
       // this.stage.update();
 
       easljs.Ticker.timingMode = easljs.Ticker.RAF;
