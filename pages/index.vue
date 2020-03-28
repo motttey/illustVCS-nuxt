@@ -28,7 +28,7 @@ export default Vue.extend({
       stage: {},
       new_shape: {},
       shape: {},
-      // revisions: [], // DAGにする
+      revisions: [], // DAGにする
     }
   },
   methods: {
@@ -62,6 +62,13 @@ export default Vue.extend({
         this.stage.removeEventListener("stagemouseup", this.handleUp);
       }
       this.stage.update();
+      this.revisions.push(this.new_shape.id);
+    },
+    handleUndo(event){
+      if (this.revisions.length == 0) return;
+      this.stage.removeChild(this.stage.children[this.revisions.length - 1]);
+      const id = this.revisions.pop();
+      this.stage.update();
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
@@ -76,10 +83,12 @@ export default Vue.extend({
 
       this.stage = new easljs.Stage("drawingCanvas");
       // this.shape = new easljs.Shape();
-
-      // shape.graphics.beginStroke("DarkRed");
       this.stage.addEventListener("stagemousedown", this.handleDown);
-
+      document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey) {
+          this.handleUndo(event);
+        }
+      }, false);
       // this.stage.update();
 
       easljs.Ticker.timingMode = easljs.Ticker.RAF;
