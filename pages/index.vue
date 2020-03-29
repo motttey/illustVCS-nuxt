@@ -35,6 +35,7 @@ export default Vue.extend({
     handleDown(event) {
       const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
       this.new_shape = new easljs.Shape();
+      this.new_shape.name = this.new_shape.id.toString(); // findByIdがない...
 
       this.new_shape.graphics
         .beginStroke("black");
@@ -62,13 +63,17 @@ export default Vue.extend({
         this.stage.removeEventListener("stagemouseup", this.handleUp);
       }
       this.stage.update();
-      this.revisions.push(this.new_shape.id);
+      this.revisions.push(this.new_shape.name);
     },
     handleUndo(event){
       if (this.revisions.length == 0) return;
-      this.stage.removeChild(this.stage.children[this.revisions.length - 1]);
-      const id = this.revisions.pop();
+      const name = this.revisions.pop();
+      this.stage.removeChild(this.stage.getChildByName(name));
       this.stage.update();
+    },
+    saveRevision(event){
+      let rev = this.stage.children.map(x => x.id);
+      console.log(rev);
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
@@ -87,6 +92,9 @@ export default Vue.extend({
       document.addEventListener('keydown', (event) => {
         if (event.ctrlKey) {
           this.handleUndo(event);
+        }
+        else if (event.key === 's'){
+          this.saveRevision(event);
         }
       }, false);
       // this.stage.update();
