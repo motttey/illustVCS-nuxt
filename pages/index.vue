@@ -7,12 +7,13 @@
       <h2 class="subtitle">
         version control system for drawing
       </h2>
-      <ul id="revisions-1">
+      <ul id="revisions">
         <li v-for="revision in all_revisions" :key="revision.key">
           {{ revision.revs }}
         </li>
       </ul>
       <canvas id="drawingCanvas" width="960" height="540"></canvas>
+      <svg id="revisions_DAG" width="960" height="540"> </svg>
     </div>
   </div>
 </template>
@@ -20,9 +21,10 @@
 <script lang="ts">
 import Vue from 'vue'
 import Logo from '~/components/Logo.vue'
+// import Logo from '~/components/Logo.vue'
+import * as d3 from "d3";
+// import * as d3_dag from "d3-dag";
 
-// import { Stage, Shape } from '@createjs/easeljs/dist/easeljs.cjs';
-// import { Tween } from '@createjs/tweenjs/dist/tweenjs.cjs';
 
 export default Vue.extend({
   components: {
@@ -35,6 +37,7 @@ export default Vue.extend({
       shape: {},
       revisions: [], // DAGにする
       all_revisions: [],
+      dag: {},
     }
   },
   methods: {
@@ -42,6 +45,8 @@ export default Vue.extend({
       const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
       this.new_shape = new easljs.Shape();
       this.new_shape.name = this.new_shape.id.toString(); // findByIdがない...
+
+      // this.dag =  d3_dag.sugiyama();
 
       this.new_shape.graphics
         .beginStroke("black");
