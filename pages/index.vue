@@ -7,6 +7,11 @@
       <h2 class="subtitle">
         version control system for drawing
       </h2>
+      <ul id="revisions-1">
+        <li v-for="revision in all_revisions" :key="revision.key">
+          {{ revision.revs }}
+        </li>
+      </ul>
       <canvas id="drawingCanvas" width="960" height="540"></canvas>
     </div>
   </div>
@@ -29,6 +34,7 @@ export default Vue.extend({
       new_shape: {},
       shape: {},
       revisions: [], // DAGにする
+      all_revisions: [],
     }
   },
   methods: {
@@ -73,7 +79,13 @@ export default Vue.extend({
     },
     saveRevision(event){
       let rev = this.stage.children.map(x => x.id);
-      console.log(rev);
+      this.all_revisions.push(
+        {
+          key: rev.join(','),
+          revs: rev
+        }
+      );
+      // console.log(rev);
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
