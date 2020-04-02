@@ -22,9 +22,9 @@
 import Vue from 'vue'
 import Logo from '~/components/Logo.vue'
 // import Logo from '~/components/Logo.vue'
-import * as d3 from "d3";
-// import * as d3_dag from "d3-dag";
 
+import * as d3_base from "d3";
+// import * as d3dag from'd3-dag';
 
 export default Vue.extend({
   components: {
@@ -46,7 +46,7 @@ export default Vue.extend({
       this.new_shape = new easljs.Shape();
       this.new_shape.name = this.new_shape.id.toString(); // findByIdがない...
 
-      // this.dag =  d3_dag.sugiyama();
+      this.dag =  d3dag.dagConnect();
 
       this.new_shape.graphics
         .beginStroke("black");
@@ -90,6 +90,7 @@ export default Vue.extend({
           revs: rev
         }
       );
+
       // console.log(rev);
     },
     onTick() {
