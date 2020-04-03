@@ -21,7 +21,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import Logo from '~/components/Logo.vue'
-// import Logo from '~/components/Logo.vue'
+import sha256 from 'crypto-js/sha256'
 
 import * as d3_base from "d3";
 // import * as d3dag from'd3-dag';
@@ -107,9 +107,11 @@ export default Vue.extend({
     },
     saveRevision(event){
       let rev = this.stage.children.map(x => x.id);
+      const hash = sha256(new Date().toString()).toString();
+      console.log("new revision array: " + hash);
       this.all_revisions.push(
         {
-          key: rev.join(','),
+          key: hash,
           revs: rev
         }
       );

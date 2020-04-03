@@ -19,6 +19,7 @@
     "bootstrap-vue": "^2.0.0",
     "child_process": "^1.0.2",
     "createjs": "^1.0.1",
+    "crypto-js": "^4.0.0",
     "d3": "^5.15.0",
     "fs": "0.0.1-security",
     "install": "^0.13.0",
