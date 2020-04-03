@@ -36,6 +36,9 @@ export default Vue.extend({
       new_shape: {},
       shape: {},
       revisions: [], // DAGにする
+      undo_stack: [],
+      redo_stack: [],
+      redo_revs: {},
       all_revisions: [],
       dag: {},
     }
@@ -46,7 +49,10 @@ export default Vue.extend({
       this.new_shape = new easljs.Shape();
       this.new_shape.name = this.new_shape.id.toString(); // findByIdがない...
 
-      this.dag =  d3dag.dagConnect();
+      // this.dag =  d3dag.dagConnect();
+      // redoを初期化
+      this.redo_stack = []
+      this.redo_revs = {}
 
       this.new_shape.graphics
         .beginStroke("black");
@@ -74,12 +80,29 @@ export default Vue.extend({
         this.stage.removeEventListener("stagemouseup", this.handleUp);
       }
       this.stage.update();
-      this.revisions.push(this.new_shape.name);
+      this.undo_stack.push(this.new_shape.name);
     },
     handleUndo(event){
-      if (this.revisions.length == 0) return;
-      const name = this.revisions.pop();
+      if (this.undo_stack.length == 0) return;
+      const name = this.undo_stack.pop();
+      this.redo_stack.push(name);
+      this.redo_revs[name] = this.stage.getChildByName(name);
+
       this.stage.removeChild(this.stage.getChildByName(name));
+      this.stage.update();
+    },
+    handleRedo(event){
+      if (this.redo_stack.length == 0) return;
+      const name = this.redo_stack.pop();
+      this.undo_stack.push(name);
+
+      let found_rev = this.redo_revs[name];
+      if (found_rev.length == 0)
+        console.log("revision not found")
+      else
+        this.stage.addChild(found_rev);
+
+      delete this.redo_revs[name];
       this.stage.update();
     },
     saveRevision(event){
@@ -90,7 +113,6 @@ export default Vue.extend({
           revs: rev
         }
       );
-
       // console.log(rev);
     },
     onTick() {
@@ -110,6 +132,9 @@ export default Vue.extend({
       document.addEventListener('keydown', (event) => {
         if (event.ctrlKey) {
           this.handleUndo(event);
+        }
+        else if (event.key === 'r'){
+          this.handleRedo(event);
         }
         else if (event.key === 's'){
           this.saveRevision(event);
