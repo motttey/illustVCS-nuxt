@@ -12,6 +12,7 @@
           {{ revision.revs }}
         </li>
       </ul>
+      <canvas id="layer1" width="960" height="540"></canvas>
       <canvas id="drawingCanvas" width="960" height="540"></canvas>
       <svg id="revisions_DAG" width="960" height="540"> </svg>
     </div>
@@ -33,6 +34,7 @@ export default Vue.extend({
   data: function() {
     return {
       stage: {},
+      stage_layer1: {},
       new_shape: {},
       shape: {},
       revisions: [], // DAGにする
@@ -59,6 +61,12 @@ export default Vue.extend({
 
       this.new_shape.graphics.moveTo(event.stageX, event.stageY) // 描画開始位置を指定
       this.stage.addChild(this.new_shape);
+
+      // 参照でコピーされるっぽい -> 格納時にレイヤー情報を付加する? (要検討)
+      let layer1_shape = this.new_shape;
+      layer1_shape.graphics.beginStroke("yellow");
+      layer1_shape.name = this.new_shape.id.toString();
+      this.stage_layer1.addChild(layer1_shape); //
 
       if (process.client) {
         this.stage.addEventListener("stagemousemove", this.handleMove);
@@ -119,6 +127,7 @@ export default Vue.extend({
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
+      this.stage_layer1.update();
     }
   },
   created: function(){
@@ -129,6 +138,8 @@ export default Vue.extend({
       const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
 
       this.stage = new easljs.Stage("drawingCanvas");
+      this.stage_layer1 = new easljs.Stage("layer1");
+
       // this.shape = new easljs.Shape();
       this.stage.addEventListener("stagemousedown", this.handleDown);
       document.addEventListener('keydown', (event) => {
