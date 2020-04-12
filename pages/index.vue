@@ -14,6 +14,7 @@
       </ul>
       <div id="canvas_holder">
         <canvas id="layer1" width="960" height="540"></canvas>
+        <canvas id="layer2" width="960" height="540"></canvas>
         <canvas id="drawingCanvas" width="960" height="540"></canvas>
       </div>
 
@@ -36,8 +37,9 @@ export default Vue.extend({
   },
   data: function() {
     return {
+      layer_index: 0,
       stage: {},
-      stage_layer1: {},
+      stage_layer: {},
       new_shape: {},
       layer1_shape: {},
       shape: {},
@@ -68,9 +70,12 @@ export default Vue.extend({
 
       // 参照でコピーされるっぽい -> 格納時にレイヤー情報を付加する? (要検討)
       this.layer1_shape = this.new_shape;
-      this.layer1_shape.graphics.beginStroke("blue");
+
+      const layer_color = this.setLayerColor();
+      this.layer1_shape.graphics.beginStroke(layer_color);
       this.layer1_shape.name = this.new_shape.id.toString();
-      this.stage_layer1.addChild(this.layer1_shape); //
+
+      this.stage_layer.addChild(this.layer1_shape); //
 
       if (process.client) {
         this.stage.addEventListener("stagemousemove", this.handleMove);
@@ -92,17 +97,17 @@ export default Vue.extend({
         this.stage.removeEventListener("stagemouseup", this.handleUp);
       }
       this.stage.update();
-      this.stage_layer1.update();
+      this.stage_layer.update();
       this.undo_stack.push(this.layer1_shape.name);
     },
     handleUndo(event){
       if (this.undo_stack.length == 0) return;
       const name = this.undo_stack.pop();
       this.redo_stack.push(name);
-      this.redo_revs[name] = this.stage_layer1.getChildByName(name);
+      this.redo_revs[name] = this.stage_layer.getChildByName(name);
 
-      this.stage_layer1.removeChild(this.stage_layer1.getChildByName(name));
-      this.stage_layer1.update();
+      this.stage_layer.removeChild(this.stage_layer.getChildByName(name));
+      this.stage_layer.update();
     },
     handleRedo(event){
       if (this.redo_stack.length == 0) return;
@@ -113,13 +118,14 @@ export default Vue.extend({
       if (found_rev.length == 0)
         console.log("revision not found")
       else
-        this.stage_layer1.addChild(found_rev);
+        this.stage_layer.addChild(found_rev);
 
       delete this.redo_revs[name];
-      this.stage_layer1.update();
+      this.stage_layer.update();
     },
     saveRevision(event){
-      let rev = this.stage_layer1.children.map(x => x.id);
+      // TODO, レイヤ情報を履歴に追加
+      let rev = this.stage_layer.children.map(x => x.id);
       const hash = sha256(new Date().toString()).toString();
       console.log("new revision array: " + hash);
       this.all_revisions.push(
@@ -130,9 +136,23 @@ export default Vue.extend({
       );
       // console.log(rev);
     },
+    changeLayerIndex(){
+      this.layer_index = (this.layer_index == 0)? 1: 0;
+    },
+    setLayerColor(){
+      let layer_color;
+      if (this.layer_index == 0) layer_color = "blue";
+      else layer_color = "red";
+      return layer_color;
+    },
+    selectLayer() {
+      const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
+      if (this.layer_index == 0) return new easljs.Stage("layer1");
+      else return new easljs.Stage("layer2");
+    },
     onTick() {
       this.stage.update(); // Stageの描画を更新
-      this.stage_layer1.update();
+      this.stage_layer.update();
     }
   },
   created: function(){
@@ -143,7 +163,7 @@ export default Vue.extend({
       const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
 
       this.stage = new easljs.Stage("drawingCanvas");
-      this.stage_layer1 = new easljs.Stage("layer1");
+      this.stage_layer = new easljs.Stage("layer1");
 
       // this.shape = new easljs.Shape();
       this.stage.addEventListener("stagemousedown", this.handleDown);
@@ -156,6 +176,10 @@ export default Vue.extend({
         }
         else if (event.key === 's'){
           this.saveRevision(event);
+        }
+        else if (event.key === 'l'){
+          this.changeLayerIndex(event);
+          this.stage_layer =  this.selectLayer();
         }
       }, false);
       // this.stage.update();
