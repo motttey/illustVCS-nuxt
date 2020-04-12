@@ -12,8 +12,11 @@
           {{ revision.revs }}
         </li>
       </ul>
-      <canvas id="layer1" width="960" height="540"></canvas>
-      <canvas id="drawingCanvas" width="960" height="540"></canvas>
+      <div id="canvas_holder">
+        <canvas id="layer1" width="960" height="540"></canvas>
+        <canvas id="drawingCanvas" width="960" height="540"></canvas>
+      </div>
+
       <svg id="revisions_DAG" width="960" height="540"> </svg>
     </div>
   </div>
@@ -36,6 +39,7 @@ export default Vue.extend({
       stage: {},
       stage_layer1: {},
       new_shape: {},
+      layer1_shape: {},
       shape: {},
       revisions: [], // DAGにする
       undo_stack: [],
@@ -63,10 +67,10 @@ export default Vue.extend({
       this.stage.addChild(this.new_shape);
 
       // 参照でコピーされるっぽい -> 格納時にレイヤー情報を付加する? (要検討)
-      let layer1_shape = this.new_shape;
-      layer1_shape.graphics.beginStroke("yellow");
-      layer1_shape.name = this.new_shape.id.toString();
-      this.stage_layer1.addChild(layer1_shape); //
+      this.layer1_shape = this.new_shape;
+      this.layer1_shape.graphics.beginStroke("blue");
+      this.layer1_shape.name = this.new_shape.id.toString();
+      this.stage_layer1.addChild(this.layer1_shape); //
 
       if (process.client) {
         this.stage.addEventListener("stagemousemove", this.handleMove);
@@ -88,16 +92,17 @@ export default Vue.extend({
         this.stage.removeEventListener("stagemouseup", this.handleUp);
       }
       this.stage.update();
-      this.undo_stack.push(this.new_shape.name);
+      this.stage_layer1.update();
+      this.undo_stack.push(this.layer1_shape.name);
     },
     handleUndo(event){
       if (this.undo_stack.length == 0) return;
       const name = this.undo_stack.pop();
       this.redo_stack.push(name);
-      this.redo_revs[name] = this.stage.getChildByName(name);
+      this.redo_revs[name] = this.stage_layer1.getChildByName(name);
 
-      this.stage.removeChild(this.stage.getChildByName(name));
-      this.stage.update();
+      this.stage_layer1.removeChild(this.stage_layer1.getChildByName(name));
+      this.stage_layer1.update();
     },
     handleRedo(event){
       if (this.redo_stack.length == 0) return;
@@ -108,13 +113,13 @@ export default Vue.extend({
       if (found_rev.length == 0)
         console.log("revision not found")
       else
-        this.stage.addChild(found_rev);
+        this.stage_layer1.addChild(found_rev);
 
       delete this.redo_revs[name];
-      this.stage.update();
+      this.stage_layer1.update();
     },
     saveRevision(event){
-      let rev = this.stage.children.map(x => x.id);
+      let rev = this.stage_layer1.children.map(x => x.id);
       const hash = sha256(new Date().toString()).toString();
       console.log("new revision array: " + hash);
       this.all_revisions.push(
@@ -194,4 +199,8 @@ export default Vue.extend({
   padding-top: 15px;
 }
 
+canvas {
+  position: absolute;
+  left: 0;
+}
 </style>
