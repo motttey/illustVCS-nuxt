@@ -12,6 +12,8 @@
           {{ revision.revs }}
         </li>
       </ul>
+
+      <input id="inputColor" type="color" value="#000000">
       <div id="canvas_holder">
         <canvas id="layer1" width="960" height="540"></canvas>
         <canvas id="layer2" width="960" height="540"></canvas>
@@ -38,6 +40,7 @@ export default Vue.extend({
   data: function() {
     return {
       layer_index: 0,
+      layer_color: ["#000000", "#000000"],
       stage: {},
       stage_layer: {},
       new_shape: {},
@@ -71,8 +74,7 @@ export default Vue.extend({
       // 参照でコピーされるっぽい -> 格納時にレイヤー情報を付加する? (要検討)
       this.layer1_shape = this.new_shape;
 
-      const layer_color = this.setLayerColor();
-      this.layer1_shape.graphics.beginStroke(layer_color);
+      this.layer1_shape.graphics.beginStroke(this.setLayerColor());
       this.layer1_shape.name = this.new_shape.id.toString();
 
       this.stage_layer.addChild(this.layer1_shape); //
@@ -140,10 +142,8 @@ export default Vue.extend({
       this.layer_index = (this.layer_index == 0)? 1: 0;
     },
     setLayerColor(){
-      let layer_color;
-      if (this.layer_index == 0) layer_color = "blue";
-      else layer_color = "red";
-      return layer_color;
+      this.layer_color[this.layer_index] = document.querySelector("#inputColor").value;
+      return this.layer_color[this.layer_index];
     },
     selectLayer() {
       const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
