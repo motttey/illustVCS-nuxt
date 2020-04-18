@@ -7,13 +7,20 @@
       <h2 class="subtitle">
         version control system for drawing
       </h2>
-      <ul id="revisions">
-        <li v-for="revision in all_revisions" :key="revision.key">
-          {{ revision.revs }}
-        </li>
-      </ul>
-
+      <div id="revisions">
+        <ul>
+          <li v-for="revision in all_revisions" :key="revision.key">
+            {{ revision.revs }}
+          </li>
+        </ul>
+      </div>
+      <div id="layers">
+        <span v-for="layer in stage_layers" :key="layer.name">
+          レイヤー {{ stage_layers.indexOf(layer) }}
+        </span>
+      </div>
       <input id="inputColor" type="color" value="#000000">
+
       <div id="canvas_holder">
         <canvas id="layer1" width="960" height="540"></canvas>
         <canvas id="layer2" width="960" height="540"></canvas>
@@ -43,6 +50,7 @@ export default Vue.extend({
       layer_color: ["#000000", "#000000"],
       stage: {},
       stage_layer: {},
+      stage_layers: {},
       new_shape: {},
       layer1_shape: {},
       shape: {},
@@ -147,8 +155,8 @@ export default Vue.extend({
     },
     selectLayer() {
       const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
-      if (this.layer_index == 0) return new easljs.Stage("layer1");
-      else return new easljs.Stage("layer2");
+      console.log(this.stage_layers);
+      return this.stage_layers[this.layer_index];
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
@@ -163,7 +171,9 @@ export default Vue.extend({
       const tweenjs = require('@createjs/tweenjs/dist/tweenjs.cjs');
 
       this.stage = new easljs.Stage("drawingCanvas");
-      this.stage_layer = new easljs.Stage("layer1");
+
+      this.stage_layers = [new easljs.Stage("layer1"), new easljs.Stage("layer2")];
+      this.stage_layer = this.stage_layers[this.layer_index]
 
       // this.shape = new easljs.Shape();
       this.stage.addEventListener("stagemousedown", this.handleDown);
