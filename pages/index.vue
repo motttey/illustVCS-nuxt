@@ -10,7 +10,7 @@
       <div id="revisions">
         <ul>
           <li v-for="revision in all_revisions" :key="revision.key">
-            {{ revision.revs }}
+            {{ revision.layer_revs[layer_index] }}
           </li>
         </ul>
       </div>
@@ -147,16 +147,24 @@ export default Vue.extend({
     },
     saveRevision(event){
       // TODO, レイヤ情報を履歴に追加
-      let rev = this.all_stage_layers[this.layer_index].stage_layer.children.map(x => x.id);
       const hash = sha256(new Date().toString()).toString();
       console.log("new revision array: " + hash);
-      this.all_revisions.push(
-        {
-          key: hash,
-          revs: rev
-        }
-      );
-      // console.log(rev);
+      let layer_objects = [];
+
+      this.all_stage_layers.forEach(layer => {
+        let rev = layer.stage_layer.children.map(x => x.id);
+        layer_objects.push(
+          {
+            key: hash,
+            revs: rev
+          }
+        );
+      });
+      this.all_revisions.push({
+        hash: hash,
+        layer_revs: layer_objects
+      })
+      console.log(this.all_revisions);
     },
     changeLayerIndex(){
       this.layer_index = (this.layer_index == 0)? 1: 0;
