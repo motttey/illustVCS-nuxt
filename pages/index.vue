@@ -15,8 +15,8 @@
         </ul>
       </div>
       <div id="layers">
-        <span v-for="layer in stage_layers" :key="layer.name">
-          レイヤー {{ stage_layers.indexOf(layer) }}
+        <span v-for="layer in all_stage_layers" :key="layer.name">
+          レイヤー {{ all_stage_layers.indexOf(layer) }}
         </span>
       </div>
       <input id="inputColor" type="color" value="#000000">
@@ -40,6 +40,22 @@ import sha256 from 'crypto-js/sha256'
 import * as d3_base from "d3";
 // import * as d3dag from'd3-dag';
 
+
+/*
+想定するデータ形式
+stage_layers = [
+  layer1 {
+    index = 0
+    stage_layer = {}
+    color = "#000000"
+    undo_stack = []
+    redo_stack = []
+    redo_revs = {}
+  },
+
+]
+*/
+
 export default Vue.extend({
   components: {
     Logo
@@ -47,17 +63,13 @@ export default Vue.extend({
   data: function() {
     return {
       layer_index: 0,
-      layer_color: ["#000000", "#000000"],
       stage: {},
       stage_layer: {},
-      stage_layers: {},
+      all_stage_layers: [],
       new_shape: {},
       layer1_shape: {},
       shape: {},
       revisions: [], // DAGにする
-      undo_stack: [],
-      redo_stack: [],
-      redo_revs: {},
       all_revisions: [],
       dag: {},
     }
@@ -108,34 +120,34 @@ export default Vue.extend({
       }
       this.stage.update();
       this.stage_layer.update();
-      this.undo_stack.push(this.layer1_shape.name);
+      this.all_stage_layers[this.layer_index].undo_stack.push(this.layer1_shape.name);
     },
     handleUndo(event){
-      if (this.undo_stack.length == 0) return;
-      const name = this.undo_stack.pop();
-      this.redo_stack.push(name);
-      this.redo_revs[name] = this.stage_layer.getChildByName(name);
+      if (this.all_stage_layers[this.layer_index].undo_stack.length == 0) return;
+      const name = this.all_stage_layers[this.layer_index].undo_stack.pop();
+      this.all_stage_layers[this.layer_index].redo_stack.push(name);
+      this.all_stage_layers[this.layer_index].redo_revs[name] = this.stage_layer.getChildByName(name);
 
       this.stage_layer.removeChild(this.stage_layer.getChildByName(name));
       this.stage_layer.update();
     },
     handleRedo(event){
-      if (this.redo_stack.length == 0) return;
-      const name = this.redo_stack.pop();
-      this.undo_stack.push(name);
+      if (this.all_stage_layers[this.layer_index].redo_stack.length == 0) return;
+      const name = this.all_stage_layers[this.layer_index].redo_stack.pop();
+      this.all_stage_layers[this.layer_index].undo_stack.push(name);
 
-      let found_rev = this.redo_revs[name];
+      let found_rev = this.all_stage_layers[this.layer_index].redo_revs[name];
       if (found_rev.length == 0)
         console.log("revision not found")
       else
         this.stage_layer.addChild(found_rev);
 
-      delete this.redo_revs[name];
+      delete this.all_stage_layers[this.layer_index].redo_revs[name];
       this.stage_layer.update();
     },
     saveRevision(event){
       // TODO, レイヤ情報を履歴に追加
-      let rev = this.stage_layer.children.map(x => x.id);
+      let rev = this.all_stage_layers[this.layer_index].stage_layer.children.map(x => x.id);
       const hash = sha256(new Date().toString()).toString();
       console.log("new revision array: " + hash);
       this.all_revisions.push(
@@ -150,13 +162,12 @@ export default Vue.extend({
       this.layer_index = (this.layer_index == 0)? 1: 0;
     },
     setLayerColor(){
-      this.layer_color[this.layer_index] = document.querySelector("#inputColor").value;
-      return this.layer_color[this.layer_index];
+      this.all_stage_layers[this.layer_index].color = document.querySelector("#inputColor").value;
+      return this.all_stage_layers[this.layer_index].color;
     },
     selectLayer() {
-      const easljs = require('@createjs/easeljs/dist/easeljs.cjs');
-      console.log(this.stage_layers);
-      return this.stage_layers[this.layer_index];
+      console.log(this.all_stage_layers);
+      return this.all_stage_layers[this.layer_index].stage_layer;
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
@@ -172,8 +183,21 @@ export default Vue.extend({
 
       this.stage = new easljs.Stage("drawingCanvas");
 
-      this.stage_layers = [new easljs.Stage("layer1"), new easljs.Stage("layer2")];
-      this.stage_layer = this.stage_layers[this.layer_index]
+      // init
+      const layer_size = 2;
+      //
+      for (let index = 0; index < layer_size; index++) {
+        let layer = {}
+        layer.index = 0;
+        layer.stage_layer = new easljs.Stage("layer" + (index + 1).toString());
+        layer.color = "#000000";
+        layer.undo_stack = [];
+        layer.redo_stack = [];
+        layer.redo_revs = {};
+        this.all_stage_layers.push(layer);
+      }
+
+      this.stage_layer = this.all_stage_layers[this.layer_index].stage_layer;
 
       // this.shape = new easljs.Shape();
       this.stage.addEventListener("stagemousedown", this.handleDown);
@@ -192,7 +216,6 @@ export default Vue.extend({
           this.stage_layer =  this.selectLayer();
         }
       }, false);
-      // this.stage.update();
 
       easljs.Ticker.timingMode = easljs.Ticker.RAF;
       easljs.Ticker.addEventListener("tick", this.onTick);
