@@ -16,7 +16,12 @@
       </div>
       <div id="layers">
         <span v-for="layer in all_stage_layers" :key="layer.name">
-          レイヤー {{ all_stage_layers.indexOf(layer) }}
+          <span v-if="all_stage_layers.indexOf(layer) === layer_index" class="span_selected">
+            レイヤー {{ all_stage_layers.indexOf(layer) }}
+          </span>
+          <span v-else>
+            レイヤー {{ all_stage_layers.indexOf(layer) }}
+          </span>
         </span>
       </div>
       <input id="inputColor" type="color" value="#000000">
@@ -39,22 +44,6 @@ import sha256 from 'crypto-js/sha256'
 
 import * as d3_base from "d3";
 // import * as d3dag from'd3-dag';
-
-
-/*
-想定するデータ形式
-stage_layers = [
-  layer1 {
-    index = 0
-    stage_layer = {}
-    color = "#000000"
-    undo_stack = []
-    redo_stack = []
-    redo_revs = {}
-  },
-
-]
-*/
 
 export default Vue.extend({
   components: {
@@ -262,6 +251,10 @@ export default Vue.extend({
 
 .links {
   padding-top: 15px;
+}
+
+.span_selected {
+  text-decoration: underline;
 }
 
 canvas {
