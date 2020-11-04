@@ -21,7 +21,7 @@
       </div>
 
       <div id="layers">
-        <span v-for="layer in all_stage_layers" :key="layer.name">
+        <span v-for="layer in all_stage_layers" :key="layer.name" @click="selectLayerOnClick(layer)">
           <span v-if="all_stage_layers.indexOf(layer) === layer_index" class="span_selected">
             レイヤー {{ all_stage_layers.indexOf(layer) }}
           </span>
@@ -158,15 +158,19 @@ export default Vue.extend({
       console.log(this.all_revisions);
     },
     changeLayerIndex(){
-      this.layer_index = (this.layer_index == 0)? 1: 0;
+      this.layer_index = (this.layer_index < this.all_stage_layers.length)? this.layer_index + 1: 0;
     },
     setLayerColor(){
       this.all_stage_layers[this.layer_index].color = document.querySelector("#inputColor").value;
       return this.all_stage_layers[this.layer_index].color;
     },
     selectLayer() {
-      console.log(this.all_stage_layers);
+      // 新しいレイヤーを選択して対応するステージオブジェクトを返す
       return this.all_stage_layers[this.layer_index].stage_layer;
+    },
+    selectLayerOnClick(layer){
+      this.layer_index = this.all_stage_layers.indexOf(layer)
+      this.stage_layer =  this.selectLayer();
     },
     onTick() {
       this.stage.update(); // Stageの描画を更新
