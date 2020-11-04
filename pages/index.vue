@@ -7,6 +7,11 @@
       <h2 class="subtitle">
         version control system for drawing
       </h2>
+
+      <div id="palette">
+        Select Color <input id="inputColor" width="200px" type="color" value="#000000">
+      </div>
+
       <div id="revisions">
         <ul>
           <li v-for="revision in all_revisions" :key="revision.key">
@@ -14,6 +19,7 @@
           </li>
         </ul>
       </div>
+
       <div id="layers">
         <span v-for="layer in all_stage_layers" :key="layer.name">
           <span v-if="all_stage_layers.indexOf(layer) === layer_index" class="span_selected">
@@ -24,7 +30,6 @@
           </span>
         </span>
       </div>
-      <input id="inputColor" type="color" value="#000000">
 
       <div id="canvas_holder">
         <canvas id="layer1" width="960" height="540"></canvas>
@@ -39,25 +44,22 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import Logo from '~/components/Logo.vue'
 import sha256 from 'crypto-js/sha256'
 
 import * as d3_base from "d3";
-// import * as d3dag from'd3-dag';
 
 export default Vue.extend({
   components: {
-    Logo
   },
   data: function() {
     return {
       layer_index: 0,
+      // イベントが走る箇所
       stage: {},
       stage_layer: {},
       all_stage_layers: [],
       new_shape: {},
-      layer1_shape: {},
-      shape: {},
+      surface_layer_shape: {},
       revisions: [], // DAGにする
       all_revisions: [],
       dag: {},
@@ -81,12 +83,12 @@ export default Vue.extend({
       this.stage.addChild(this.new_shape);
 
       // 参照でコピーされるっぽい -> 格納時にレイヤー情報を付加する? (要検討)
-      this.layer1_shape = this.new_shape;
+      this.surface_layer_shape = this.new_shape;
 
-      this.layer1_shape.graphics.beginStroke(this.setLayerColor());
-      this.layer1_shape.name = this.new_shape.id.toString();
+      this.surface_layer_shape.graphics.beginStroke(this.setLayerColor());
+      this.surface_layer_shape.name = this.new_shape.id.toString();
 
-      this.stage_layer.addChild(this.layer1_shape); //
+      this.stage_layer.addChild(this.surface_layer_shape); //
 
       if (process.client) {
         this.stage.addEventListener("stagemousemove", this.handleMove);
@@ -109,7 +111,7 @@ export default Vue.extend({
       }
       this.stage.update();
       this.stage_layer.update();
-      this.all_stage_layers[this.layer_index].undo_stack.push(this.layer1_shape.name);
+      this.all_stage_layers[this.layer_index].undo_stack.push(this.surface_layer_shape.name);
     },
     handleUndo(event){
       if (this.all_stage_layers[this.layer_index].undo_stack.length == 0) return;
@@ -196,7 +198,6 @@ export default Vue.extend({
 
       this.stage_layer = this.all_stage_layers[this.layer_index].stage_layer;
 
-      // this.shape = new easljs.Shape();
       this.stage.addEventListener("stagemousedown", this.handleDown);
       document.addEventListener('keydown', (event) => {
         if (event.ctrlKey) {
