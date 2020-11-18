@@ -37,7 +37,9 @@
         <canvas id="drawingCanvas" width="960" height="540"></canvas>
       </div>
 
-      <svg id="revisions_DAG" width="960" height="540"> </svg>
+      <div id="dag_div">
+        <svg id="dag"></svg>
+      </div>
     </div>
   </div>
 </template>
@@ -46,7 +48,8 @@
 import Vue from 'vue'
 import sha256 from 'crypto-js/sha256'
 
-import * as d3_base from "d3";
+import * as d3 from "d3";
+import * as d3_dag from "d3-dag";
 
 export default Vue.extend({
   components: {
