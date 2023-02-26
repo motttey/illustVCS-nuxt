@@ -1,5 +1,5 @@
 {
-  "name": "illustVCS",
+  "name": "illust-vcs",
   "version": "1.0.0",
   "description": "version control system for drawing",
   "author": "motttey",
@@ -24,7 +24,7 @@
     "d3-dag": "^0.5.0",
     "fs": "0.0.1-security",
     "install": "^0.13.0",
-    "nuxt": "^3.0.0"
+    "nuxt": "^2.16.0"
   },
   "devDependencies": {
     "@nuxt/typescript-build": "^0.6.0"
