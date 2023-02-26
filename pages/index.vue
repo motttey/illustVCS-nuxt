@@ -48,9 +48,6 @@
 import Vue from 'vue'
 import sha256 from 'crypto-js/sha256'
 
-import * as d3 from "d3";
-import * as d3_dag from "d3-dag";
-
 export default Vue.extend({
   components: {
   },
