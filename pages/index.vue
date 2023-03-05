@@ -72,12 +72,8 @@ export default Vue.extend({
       this.new_shape.name = this.new_shape.id.toString(); // findByIdがない...
 
       // this.dag =  d3dag.dagConnect();
-      // redoを初期化
-      this.redo_stack = []
-      this.redo_revs = {}
 
-      this.new_shape.graphics
-        .beginStroke("black");
+      this.new_shape.graphics.beginStroke("black");
 
       this.new_shape.graphics.moveTo(event.stageX, event.stageY) // 描画開始位置を指定
       this.stage.addChild(this.new_shape);
@@ -113,7 +109,7 @@ export default Vue.extend({
       this.stage_layer.update();
       this.all_stage_layers[this.layer_index].undo_stack.push(this.surface_layer_shape.name);
     },
-    handleUndo(event){
+    handleUndo(){
       if (this.all_stage_layers[this.layer_index].undo_stack.length == 0) return;
       const name = this.all_stage_layers[this.layer_index].undo_stack.pop();
       this.all_stage_layers[this.layer_index].redo_stack.push(name);
@@ -122,7 +118,7 @@ export default Vue.extend({
       this.stage_layer.removeChild(this.stage_layer.getChildByName(name));
       this.stage_layer.update();
     },
-    handleRedo(event){
+    handleRedo(){
       if (this.all_stage_layers[this.layer_index].redo_stack.length == 0) return;
       const name = this.all_stage_layers[this.layer_index].redo_stack.pop();
       this.all_stage_layers[this.layer_index].undo_stack.push(name);
@@ -136,11 +132,11 @@ export default Vue.extend({
       delete this.all_stage_layers[this.layer_index].redo_revs[name];
       this.stage_layer.update();
     },
-    saveRevision(event){
+    saveRevision(){
       // TODO, レイヤ情報を履歴に追加
       const hash = sha256(new Date().toString()).toString();
       console.log("new revision array: " + hash);
-      let layer_objects = [];
+      let layer_objects= [];
 
       this.all_stage_layers.forEach(layer => {
         let rev = layer.stage_layer.children.map(x => x.id);
