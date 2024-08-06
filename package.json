@@ -24,7 +24,7 @@
     "d3-dag": "^0.5.0",
     "fs": "0.0.1-security",
     "install": "^0.13.0",
-    "nuxt": "^3.12.1"
+    "nuxt": "^3.12.4"
   },
   "devDependencies": {
     "@nuxt/typescript-build": "^3.0.2",
